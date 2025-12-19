@@ -1,0 +1,70 @@
+<div class="container my-5">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="text-center mb-4">Billing Page</h4>
+      <%= form_tag generate_customer_bill_path, method: :post do %>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label class="form-label">Customer Email</label>
+          </div>
+          <div class="col-md-4">
+            <%= email_field_tag :email, nil, class: "form-control", placeholder: "Email ID" %>
+          </div>
+        </div>
+        <div class="row mb-2">
+          <div class="col-md-4">
+            <label class="form-label">Bill Section</label>
+          </div>
+          <div class="col-md-6 text-end">
+            <button type="button" class="btn btn-secondary btn-sm">
+              Add New
+            </button>
+          </div>
+        </div>
+        <% 3.times do |i| %>
+          <div class="row g-3 mb-2">
+            <div class="col-md-4 offset-md-4">
+              <%= text_field_tag "products[#{i}][product_id]", nil, class: "form-control", placeholder: "Product ID" %>
+            </div>
+            <div class="col-md-3">
+              <%= number_field_tag "products[#{i}][quantity]", nil, class: "form-control",
+                    placeholder: "Quantity" %>
+            </div>
+          </div>
+        <% end %>
+        <hr>
+        <div class="row">
+          <div class="col-md-4">
+            <label class="form-label">Denominations</label>
+          </div>
+          <div class="col-md-6">
+            <% [500, 100, 50, 20, 10, 5, 2, 1].each do |d| %>
+              <div class="row align-items-center mb-2">
+                <div class="col-2 text-end">
+                  <strong><%= d %></strong>
+                </div>
+                <div class="col-4">
+                  <%= number_field_tag "denominations[#{d}]", nil, class: "form-control form-control-sm denomination-input", data: { value: d }, min: 0, placeholder: "Count" %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col-md-4">
+            <label class="form-label">Cash paid by customer</label>
+          </div>
+          <div class="col-md-4">
+            <%= number_field_tag :cash_paid, nil, class: "form-control", placeholder: "Amount" %>
+          </div>
+        </div>
+        <div class="row mt-5">
+          <div class="col-md-12 text-end">
+            <%= link_to "Cancel", root_path, class: "btn btn-outline-secondary me-2" %>
+            <%= submit_tag "Generate Bill", class: "btn btn-success" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
