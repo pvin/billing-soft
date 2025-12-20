@@ -1,0 +1,100 @@
+<div class="container my-4">
+  <div class="text-center mb-4">
+    <h4 class="fw-bold">Billing Page</h4>
+  </div>
+  <div class="row mb-3">
+    <div class="col-md-3 fw-bold">Customer Email</div>
+    <div class="col-md-9 text-muted">
+      <%= @customer.email %>
+    </div>
+  </div>
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Product ID</th>
+          <th>Unit Price</th>
+          <th>Quantity</th>
+          <th>Purchase Price</th>
+          <th>Tax %</th>
+          <th>Tax Payable</th>
+          <th>Total Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% subtotal = 0 %>
+        <% total_tax = 0 %>
+        <% @bill_details.each do |item| %>
+          <% product = item.product %>
+          <% purchase_price = product.price * item.quantity %>
+          <% tax_amount = purchase_price * product.tax_percentage / 100.0 %>
+          <% subtotal += purchase_price %>
+          <% total_tax += tax_amount %>
+          <tr>
+            <td><%= product.product_id %></td>
+            <td>₹<%= product.price %></td>
+            <td><%= item.quantity %></td>
+            <td>₹<%= purchase_price.round(2) %></td>
+            <td><%= product.tax_percentage %> %</td>
+            <td>₹<%= tax_amount.round(2) %></td>
+            <td>₹<%= item.line_total.round(2) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <% net_total = subtotal + total_tax %>
+  <% rounded_total = net_total.floor %>
+  <% bill_total = @bill_details.first.bill_total %>
+  <% balance = bill_total - rounded_total %>
+  <div class="row justify-content-end">
+    <div class="col-md-6">
+      <table class="table table-borderless">
+        <tbody>
+          <tr>
+            <td>Total price without tax:</td>
+            <td class="text-end">₹<%= subtotal.round(2) %></td>
+          </tr>
+          <tr>
+            <td>Total tax payable:</td>
+            <td class="text-end">₹<%= total_tax.round(2) %></td>
+          </tr>
+          <tr>
+            <td>Net price of purchased items:</td>
+            <td class="text-end">₹<%= net_total.round(2) %></td>
+          </tr>
+          <tr>
+            <td>Rounded down net price:</td>
+            <td class="text-end">₹<%= rounded_total %></td>
+          </tr>
+          <tr class="fw-bold">
+            <td>Customer paid:</td>
+            <td class="text-end">₹<%= @bill_details.first.cash_paid.round(2) %></td>
+          </tr>
+          <tr class="fw-bold">
+            <td>Balance payable to the customer:</td>
+            <td class="text-end">₹<%= @balance_to_pay.round(2) %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <hr class="my-4">
+  <div class="text-end fw-bold mb-3">
+    Balance Denomination
+  </div>
+  <div class="row justify-content-end">
+    <div class="col-md-3">
+      <table class="table table-sm table-borderless">
+        <tbody>
+          <% @balance_denomination.each do |note, count| %>
+            <tr>
+              <td class="text-end"><%= note %> :</td>
+              <td><%= count %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

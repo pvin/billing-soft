@@ -1,5 +1,6 @@
 import $ from "jquery"
 
+//calculate total based on denomination inputs
 document.addEventListener("DOMContentLoaded", () => {
   const denominationInputs = document.querySelectorAll(".denomination-input");
   const cashPaidInput = document.querySelector("input[name='cash_paid']");
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+//Dynamically add Product ID & Quantity input
 $(document).on("turbo:load", function () {
   let index = $("#products-container .product-row").length;
 
@@ -42,7 +44,6 @@ $(document).on("turbo:load", function () {
         </div>
       </div>
     `;
-
     $("#products-container").append(row);
     index++;
   });

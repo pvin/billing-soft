@@ -5,8 +5,8 @@ Rails.application.routes.draw do
   resources :customers
   resources :products
   
-  post 'billing/generate_bill' => 'billing#generate_bill', as: 'generate_customer_bill'
-  
+  post '/billing/generate_bill' => 'billing#generate_bill', as: 'generate_customer_bill'
+  get  '/customer/:customer_id/bill/:bill_no' => 'billing#view_bill', as: 'view_customer_bill'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

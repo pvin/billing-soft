@@ -5,14 +5,21 @@ class BillingController < ApplicationController
 
   def generate_bill
     permitted = billing_params
-    @customer = UserCreationService.find_or_create_user(permitted[:email])
-    unless @customer
+    customer = UserCreationService.find_or_create_user(permitted[:email])
+    unless customer
       return error_response("Customer creation failed")
     end
-    bill_no = BillingService.bill(permitted[:products], @customer)
-    @bill_details = CustomerProduct.where(bill_no: bill_no)
+    bill_no = BillingService.bill(permitted[:products], customer, permitted[:cash_paid])
+    redirect_to view_customer_bill_path(customer.id, bill_no)
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
     error_response(e.message)
+  end
+
+  def view_bill
+    @customer = Customer.find(params[:customer_id])
+    @bill_details = CustomerProduct.where(bill_no: params[:bill_no])
+    @balance_to_pay = @bill_details.first.cash_paid - @bill_details.first.bill_total
+    @balance_denomination = DenominationService.balance_denomination @bill_details.first.cash_paid, @bill_details.first.bill_total
   end
   
   private
