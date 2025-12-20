@@ -2,7 +2,7 @@
   <div class="card">
     <div class="card-body">
       <h4 class="text-center mb-4">Billing Page</h4>
-      <%= form_tag generate_customer_bill_path, method: :post do %>
+      <%= form_tag generate_customer_bill_path,data: { turbo: false }, method: :post do %>
         <div class="row mb-3">
           <div class="col-md-4">
             <label class="form-label">Customer Email</label>
@@ -16,22 +16,29 @@
             <label class="form-label">Bill Section</label>
           </div>
           <div class="col-md-6 text-end">
-            <button type="button" class="btn btn-secondary btn-sm">
+            <button type="button"
+                    class="btn btn-secondary btn-sm"
+                    id="add-product">
               Add New
             </button>
           </div>
         </div>
-        <% 3.times do |i| %>
-          <div class="row g-3 mb-2">
-            <div class="col-md-4 offset-md-4">
-              <%= text_field_tag "products[#{i}][product_id]", nil, class: "form-control", placeholder: "Product ID" %>
+        <div id="products-container">
+          <% 3.times do |i| %>
+            <div class="row g-3 mb-2 product-row">
+              <div class="col-md-4 offset-md-4">
+                <%= text_field_tag "products[#{i}][product_id]", nil,
+                      class: "form-control",
+                      placeholder: "Product ID" %>
+              </div>
+              <div class="col-md-3">
+                <%= number_field_tag "products[#{i}][quantity]", nil,
+                      class: "form-control",
+                      placeholder: "Quantity" %>
+              </div>
             </div>
-            <div class="col-md-3">
-              <%= number_field_tag "products[#{i}][quantity]", nil, class: "form-control",
-                    placeholder: "Quantity" %>
-            </div>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
         <hr>
         <div class="row">
           <div class="col-md-4">
