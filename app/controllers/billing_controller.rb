@@ -18,9 +18,12 @@ class BillingController < ApplicationController
   def view_bill
     @customer = Customer.find(params[:customer_id])
     @bill_details = CustomerProduct.where(bill_no: params[:bill_no])
-    @balance_to_pay = @bill_details.first.cash_paid - @bill_details.first.bill_total
-    @balance_denomination = DenominationService.balance_denomination @bill_details.first.cash_paid, @bill_details.first.bill_total
-  end
+    bill = @bill_details.first
+    raise ActiveRecord::RecordNotFound, "Bill not found" unless bill
+    @balance_to_pay = bill.cash_paid - bill.bill_total
+    @balance_denomination = DenominationService.balance_denomination(bill.cash_paid, bill.bill_total)
+end
+
   
   private
 
