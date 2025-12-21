@@ -4,11 +4,13 @@ class BillingService
       bill_no = next_bill_no
       total = 0
       products.values.each do |prod|
-        product   = fetch_product(prod[:product_id])
-        quantity  = prod[:quantity].to_i
-        line_total = line_total(product, quantity)
-        total += line_total
-        CustomerProduct.create!(customer_id: customer.id, product_id: product.id, quantity: quantity, bill_no: bill_no, line_total: line_total, cash_paid: cash_received.to_d)
+        if prod[:product_id].present? && prod[:quantity].to_i.positive?
+          product   = fetch_product(prod[:product_id])
+          quantity  = prod[:quantity].to_i
+          line_total = line_total(product, quantity)
+          total += line_total
+          CustomerProduct.create!(customer_id: customer.id, product_id: product.id, quantity: quantity, bill_no: bill_no, line_total: line_total, cash_paid: cash_received.to_d)
+        end
       end
       CustomerProduct.where(bill_no: bill_no).update_all(bill_total: total, updated_at: Time.current)
       bill_no
