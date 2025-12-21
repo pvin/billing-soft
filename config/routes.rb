@@ -2,6 +2,11 @@ Rails.application.routes.draw do
   
   root 'billing#calculate_bill'
   
+  require "sidekiq/web"
+  Rails.application.routes.draw do
+    mount Sidekiq::Web => "/sidekiq"
+  end
+
   resources :customers
   resources :products
   
