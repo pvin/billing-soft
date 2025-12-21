@@ -1,6 +1,9 @@
 class InvoiceMailer < ApplicationMailer
-  def welcome_email(user)
-    @user = user
-    mail(to: @user.email, subject: "Welcome")
+
+  def send_invoice customer_id, bill_no
+    @customer = Customer.find(customer_id)
+    @bill_details = CustomerProduct.where(bill_no: bill_no)
+    mail(to: @customer.email, subject: "Invoice no #{bill_no}")
   end
+
 end

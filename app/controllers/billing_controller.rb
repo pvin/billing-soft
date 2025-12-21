@@ -10,6 +10,7 @@ class BillingController < ApplicationController
       return error_response("Customer creation failed")
     end
     bill_no = BillingService.bill(permitted[:products], customer, permitted[:cash_paid])
+    InvoiceMailer.send_invoice(customer.id, bill_no).deliver_later(wait: 30.seconds)
     redirect_to view_customer_bill_path(customer.id, bill_no)
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
     error_response(e.message)
