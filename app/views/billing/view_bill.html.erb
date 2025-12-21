@@ -4,8 +4,11 @@
   </div>
   <div class="row mb-3">
     <div class="col-md-3 fw-bold">Customer Email</div>
-    <div class="col-md-9 text-muted">
+    <div class="col-md-6 text-muted">
       <%= @customer.email %>
+    </div>
+    <div class="col-md-3 text-end">
+      <%= link_to "View previous purchases", "/customer/#{@customer.id}/bills", class: "btn btn-primary" %>
     </div>
   </div>
   <div class="table-responsive mb-4">
