@@ -1,35 +1,59 @@
 class BillingService
-  def self.bill(products, customer, cash_received)
-    ActiveRecord::Base.transaction do
-      bill_no = next_bill_no
-      total = 0
-      products.values.each do |prod|
-        if prod[:product_id].present? && prod[:quantity].to_i.positive?
-          product   = fetch_product(prod[:product_id])
-          quantity  = prod[:quantity].to_i
-          line_total = line_total(product, quantity)
-          total += line_total
-          CustomerProduct.create!(customer_id: customer.id, product_id: product.id, quantity: quantity, bill_no: bill_no, line_total: line_total, cash_paid: cash_received.to_d)
+  class << self
+    def bill(products, customer, cash_received)
+      ActiveRecord::Base.transaction do
+        bill_no   = next_bill_no
+        cash_paid = cash_received.to_d
+
+        # Filter valid line items and batch-fetch products in one query
+        valid_items = products.values.select { |p| p[:product_id].present? && p[:quantity].to_i.positive? }
+        raise ArgumentError, "At least one product with a valid quantity is required" if valid_items.empty?
+
+        product_ids = valid_items.map { |p| p[:product_id] }
+        products_by_code = Product.where(product_id: product_ids).index_by(&:product_id)
+
+        # Verify all submitted product_ids exist in the database
+        missing = product_ids.select { |pid| products_by_code[pid.to_s].nil? }
+        if missing.any?
+          raise ActiveRecord::RecordNotFound, "Product(s) not found: #{missing.join(', ')}"
         end
+
+        # Build line items and compute total in one pass
+        now = Time.current
+        records = valid_items.map do |prod|
+          product  = products_by_code.fetch(prod[:product_id].to_s)
+          quantity = prod[:quantity].to_i
+          lt       = line_total(product, quantity)
+
+          CustomerProduct.new(
+            customer_id: customer.id, product_id: product.id, quantity: quantity,
+            bill_no: bill_no, line_total: lt, cash_paid: cash_paid,
+            created_at: now, updated_at: now
+          )
+        end
+
+        total = records.sum(&:line_total)
+
+        # Save all records with bill_total set — preserves model validations
+        records.each do |record|
+          record.bill_total = total
+          record.save!
+        end
+
+        bill_no
       end
-      CustomerProduct.where(bill_no: bill_no).update_all(bill_total: total, updated_at: Time.current)
-      bill_no
     end
-  end
 
-  private
+    private
 
-  def self.next_bill_no
-    CustomerProduct.maximum(:bill_no).to_i + 1
-  end
+    def next_bill_no
+      CustomerProduct.maximum(:bill_no).to_i + 1
+    end
 
-  def self.fetch_product(product_code)
-    Product.find_by!(product_id: product_code)
-  end
-
-  def self.line_total(product, quantity)
-    base = product.price * quantity
-    tax  = base * product.tax_percentage / 100.0
-    base + tax
+    def line_total(product, quantity)
+      base = product.price * quantity
+      tax  = base * product.tax_percentage / 100.0
+      base + tax
+    end
   end
 end

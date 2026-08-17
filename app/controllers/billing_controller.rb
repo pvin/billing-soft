@@ -1,5 +1,5 @@
 class BillingController < ApplicationController
-  
+
   before_action :set_customer, only: [:view_bill, :view_bills]
 
   def calculate_bill
@@ -7,6 +7,9 @@ class BillingController < ApplicationController
 
   def generate_bill
     permitted = billing_params
+    errors = validate_billing_params(permitted)
+    return error_response(errors.join(", ")) if errors.any?
+
     customer = UserCreationService.find_or_create_user(permitted[:email])
     unless customer
       return error_response("Customer creation failed")
@@ -15,6 +18,8 @@ class BillingController < ApplicationController
     InvoiceMailer.send_invoice(customer.id, bill_no).deliver_later(wait: 30.seconds)
     redirect_to view_customer_bill_path(customer.id, bill_no)
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
+    error_response(e.message)
+  rescue ArgumentError => e
     error_response(e.message)
   end
 
@@ -38,6 +43,19 @@ class BillingController < ApplicationController
 
   def billing_params
     params.permit(:email, :cash_paid, products: [:product_id, :quantity], denominations: {})
+  end
+
+  def validate_billing_params(permitted)
+    errors = []
+    errors << "Email is required" if permitted[:email].blank?
+    errors << "Cash paid must be a positive number" if permitted[:cash_paid].to_d <= 0
+
+    products = permitted[:products]
+    has_valid_product = products.present? &&
+      products.values.any? { |p| p[:product_id].present? && p[:quantity].to_i.positive? }
+    errors << "At least one product with a valid quantity is required" unless has_valid_product
+
+    errors
   end
 
   def error_response(message = "Something went wrong. Please try again.")
